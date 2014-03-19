@@ -1,6 +1,29 @@
-<% if page.foreign_link.present? %>
-  <li><%= link_to page.title, page.foreign_link, {:target => "_blank"} %></li>
-<% else %>
-  <% page_uri = Rails.application.routes.named_routes[:spree].path.spec.to_s == '/' ? page.slug : Rails.application.routes.named_routes[:spree].path.spec.to_s + page.slug %>
-  <li class=<%= 'current' if (request.fullpath.gsub('//','/') == page_uri) %>><%= link_to page.title, page_uri  %></li>
+<% 
+css_class ||= nil
+tag_name ||= :li 
+tag_attrs ||= {}
+tag_attrs[:class] ||= ''
+tag_attrs[:class] += " #{css_class}" unless css_class.nil?
+title = page.title
+
+if page.foreign_link.present?
+  page_uri =  page.foreign_link
+else
+  page_uri = page.slug
+  page_uri = Rails.application.routes.named_routes[:spree].path.spec.to_s + page_uri if Rails.application.routes.named_routes[:spree].path.spec.to_s != '/'
+end
+tag_attrs[:class] += ' active' if request.fullpath.gsub('//','/') == page_uri
+
+case tag_name
+when :li then
+  content = link_to title, page_uri
+when :a then
+  content = title
+  tag_attrs[:href] = page_uri
+else raise "unknown tag name : #{tag_name} (valid tag names : :li, :a)"
+end
+%>
+
+<%= content_tag tag_name, tag_attrs do %>
+  <%= content %>
 <% end %>
